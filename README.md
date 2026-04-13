@@ -27,12 +27,12 @@ This is completely a combinational logic block
   Positions are 1, 2, 4, 8, 16, 32 and 39 (overall parity bit)
   Parity bits coverage set is determined using power of 2 and with data bit position - non-zero means covered in the set and zero means ignore that data bit
 - eg:
-  2 in binary = 000010
-  let data bit position is 10 = 001010
-  000010 & 001010 = 000010 -> non-zero value - so it is in P2 coverage set
+  &nbsp;&nbsp;&nbsp;&nbsp;2 in binary = 000010
+  &nbsp;&nbsp;&nbsp;&nbsp;let data bit position is 10 = 001010
+  &nbsp;&nbsp;&nbsp;&nbsp;000010 & 001010 = 000010 -> non-zero value - so it is in P2 coverage set
 
-      let data bit position is 9 = 001001
-      000010 & 001001 = 000000 -> zero value - so out of P2 coverage set
+&nbsp;&nbsp;&nbsp;&nbsp;let data bit position is 9 = 001001
+&nbsp;&nbsp;&nbsp;&nbsp;000010 & 001001 = 000000 -> zero value - so out of P2 coverage set
 
 ## SRAM Memory
 
