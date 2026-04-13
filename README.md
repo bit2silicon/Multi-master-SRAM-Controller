@@ -26,9 +26,44 @@ This is completely a combinational logic block
   It encodes data based on Hamming code algorithm, parity bits are positioned at powers of 2
   Positions are 1, 2, 4, 8, 16, 32 and 39 (overall parity bit)
   Parity bits coverage set is determined using power of 2 and with data bit position - non-zero means covered in the set and zero means ignore that data bit
-  eg: 2 in binary = 000010
+- eg:
+  2 in binary = 000010
   let data bit position is 10 = 001010
   000010 & 001010 = 000010 -> non-zero value - so it is in P2 coverage set
 
       let data bit position is 9 = 001001
       000010 & 001001 = 000000 -> zero value - so out of P2 coverage set
+
+## SRAM Memory
+
+SRAM takes in 39-bit data_in to write at 8-bit address in write operation and outputs 39-bit data_out read from 8-bit address
+
+- memory is initially initialised with an empty memory of 0x0
+- we is an input signal which indicates read(we=0) and write(we=1) operations
+- data_in is an input signal given by encoder in write operation
+- data_out is an output signal given to decoder in read operation
+- address is an input signal which governs the location of the memory where read and write operations needs to be performed
+  Memory is a single port SRAM - at a time either read or write operation can happen
+
+## ECC Decoder
+
+Decoder decodes 39-bit enc_in into 32-bit data_out, this is completely a combinational logic block
+
+- enc_in is a 39-bit input signal which is the encoded data stored in memory
+- data_out is a 32-bit output signal which is extracted from enc_in and given as an output to master
+- sec_corrected is a 1-bit output signal. It goes high only when it detects and corrects single bit error in enc
+- ded_error is a 1-bit output signal. It goes high only when it detects 2-bit errors
+
+Decoder calculates parities based on the data and parity bits, also the overall parity bit
+The calculated parity bits excluding overall parity bit makes up syndrome = {P32,P16,P8,P4,P2,P1}
+
+Decoder can have the following four cases:
+
+- syndrome=0 and overall parity bit=0 --> No Error at all
+- syndrome=0 and overall parity bit=1 --> Data is fine, error in overall parity bit
+- syndrome!=0 and overall parity bit=1 --> Single bit error detected
+  - single bit error is corrected by flipping bit at syndrome location
+  - sec_corrected = 1
+- syndrome!=0 and overall parity bit=0 --> Double bit error detected
+  - data cannot be corrected
+  - ded_error = 1
