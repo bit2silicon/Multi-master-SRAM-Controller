@@ -1,11 +1,36 @@
 # Multi-Master SRAM Controller
 
-This project is an SRAM Controller which contains
+## Overview
 
-- arbiter for managing bus contention when both the masters are requesting for the bus access
-- ECC Encoder to encode the 32-bit input data and encode it to 39-bit output data to SRAM memory
-- SRAM memory to store 39-bit encoded input data from encoder during a write operation and send 39-bit encoded data to ECC Decoder for extracting 32-bit data
-- ECC Decoder to decode data from encoded data while correcting single-bit error and detecting double-bit errors
+RTL implementation of a dual-master shared SRAM controller with round-robin
+arbitration and SEC-DED ECC on the read/write datapath. Designed in
+SystemVerilog, synthesizable, and verified using self-checking testbenches
+with fault injection.
+
+**Key features:**
+
+- Round-robin arbiter — prevents master starvation under concurrent requests
+- SEC-DED ECC — corrects single-bit errors, flags double-bit errors
+- Write-through forwarding — read-after-write hazard resolved in same cycle
+- Inferred BRAM — single-port synchronous memory, synthesis-friendly
+
+![Block Diagram](./block-diagram/SRAM_ctrl.jpeg)
+
+## Synthesis & Implementation Results
+
+Targeting Xilinx Zynq-zc706 (xc7z045ffg900-2), Vivado 2023.2
+
+| Resource               | Used | Available | Utilization |
+| ---------------------- | ---- | --------- | ----------- |
+| LUT as Logic           | 204  | 218,600   | 0.09%       |
+| Register as Flip Flops | 44   | 437,200   | 0.01%       |
+| Block RAM (36K)        | 1    | 545       | 0.18%       |
+
+Timing: Design meets timing closure at **100 MHz** (WNS = +X.XXns, post-route)
+
+> BRAM inferred as RAMB36E1 for the single-port SRAM.  
+> ECC encoder/decoder are purely combinational — FFs belong entirely  
+> to the arbiter FSM and controller registers.
 
 ## Arbiter
 
@@ -27,12 +52,13 @@ This is completely a combinational logic block
   Positions are 1, 2, 4, 8, 16, 32 and 39 (overall parity bit)
   Parity bits coverage set is determined using power of 2 and with data bit position - non-zero means covered in the set and zero means ignore that data bit
 - eg:
-  &nbsp;&nbsp;&nbsp;&nbsp;2 in binary = 000010
-  &nbsp;&nbsp;&nbsp;&nbsp;let data bit position is 10 = 001010
-  &nbsp;&nbsp;&nbsp;&nbsp;000010 & 001010 = 000010 -> non-zero value - so it is in P2 coverage set
 
-&nbsp;&nbsp;&nbsp;&nbsp;let data bit position is 9 = 001001
-&nbsp;&nbsp;&nbsp;&nbsp;000010 & 001001 = 000000 -> zero value - so out of P2 coverage set
+      2 in binary = 000010
+      let data bit position is 10 = 001010
+      000010 & 001010 = 000010 -> non-zero value - so it is in P2 coverage set
+
+      let data bit position is 9 = 001001
+      000010 & 001001 = 000000 -> zero value - so out of P2 coverage set
 
 ## SRAM Memory
 
